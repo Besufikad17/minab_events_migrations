@@ -1,0 +1,536 @@
+- name: allowed-queries
+  definition:
+    queries:
+      - name: Login
+        query: |
+          mutation Login ($login_text: String!, $password: String!, $remember_me: Boolean!) {
+            Login(login_text: $login_text, password: $password, remember_me: $remember_me) {
+              token
+            }
+          }
+      - name: IntrospectionQuery
+        query: |
+          query IntrospectionQuery {
+            __schema {
+              queryType {
+                name
+              }
+              mutationType {
+                name
+              }
+              subscriptionType {
+                name
+              }
+              types {
+                ... FullType
+              }
+              directives {
+                name
+                description
+                locations
+                args {
+                  ... InputValue
+                }
+              }
+            }
+          }
+          fragment FullType on __Type {
+            kind
+            name
+            description
+            fields(includeDeprecated: true) {
+              name
+              description
+              args {
+                ... InputValue
+              }
+              type {
+                ... TypeRef
+              }
+              isDeprecated
+              deprecationReason
+            }
+            inputFields {
+              ... InputValue
+            }
+            interfaces {
+              ... TypeRef
+            }
+            enumValues(includeDeprecated: true) {
+              name
+              description
+              isDeprecated
+              deprecationReason
+            }
+            possibleTypes {
+              ... TypeRef
+            }
+          }
+          fragment InputValue on __InputValue {
+            name
+            description
+            type {
+              ... TypeRef
+            }
+            defaultValue
+          }
+          fragment TypeRef on __Type {
+            kind
+            name
+            ofType {
+              kind
+              name
+              ofType {
+                kind
+                name
+                ofType {
+                  kind
+                  name
+                  ofType {
+                    kind
+                    name
+                    ofType {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                        ofType {
+                          kind
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+      - name: locations
+        query: |
+          query locations {
+            locations {
+              city
+            }
+          }
+      - name: SearchUser
+        query: |
+          query SearchUser ($login_text: String!) {
+            users(where: {_or:[{email:{_eq:$login_text}},{phone_number:{_eq:$login_text}}]}) {
+              id
+              first_name
+              last_name
+              email
+              phone_number
+              password
+            }
+          }
+      - name: Register
+        query: |
+          mutation Register ($first_name: String!, $last_name: String!, $email: String!, $phone_number: String!, $password: String!) {
+            insert_users_one(object: {first_name:$first_name,last_name:$last_name,email:$email,phone_number:$phone_number,password:$password}) {
+              id
+              first_name
+              last_name
+              email
+              phone_number
+            }
+          }
+      - name: CreateTag
+        query: |
+          mutation CreateTag ($event_id: Int!, $name: String!) {
+            insert_tags_one(object: {event_id:$event_id,name:$name}) {
+              id
+              name
+            }
+          }
+      - name: RegisterAction
+        query: |
+          mutation RegisterAction ($first_name: String!, $last_name: String!, $email: String!, $phone_number: String!, $password: String!, $remember_me: Boolean!) {
+            Register(first_name: $first_name, last_name: $last_name, email: $email, phone_number: $phone_number, password: $password, remember_me: $remember_me) {
+              token
+            }
+          }
+      - name: DeleteEvent
+        query: |
+          mutation DeleteEvent ($id: Int!, $location_id: Int!) {
+            delete_locations(where: {id:{_eq:$location_id}}) {
+              returning {
+                id
+              }
+            }
+            delete_events(where: {id:{_eq:$id}}) {
+              returning {
+                id
+              }
+            }
+            delete_tags(where: {event_id:{_eq:$id}}) {
+              returning {
+                id
+              }
+            }
+          }
+      - name: Bookmark
+        query: |
+          mutation Bookmark ($event_id: Int!, $user_id: Int!) {
+            insert_bookmarks_one(object: {event_id:$event_id,user_id:$user_id}) {
+              id
+              user_id
+              event_id
+            }
+          }
+      - name: UnBookmark
+        query: |
+          mutation UnBookmark ($event_id: Int!, $user_id: Int!) {
+            delete_bookmarks(where: {event_id:{_eq:$event_id},user_id:{_eq:$user_id}}) {
+              returning {
+                id
+              }
+            }
+          }
+      - name: SendComment
+        query: |
+          mutation SendComment ($name: String!, $email: String!, $message: String) {
+            insert_comments(objects: {name:$name,email:$email,message:$message}) {
+              affected_rows
+            }
+          }
+      - name: GetBookmarks
+        query: |
+          query GetBookmarks ($user_id: Int!, $skip: Int = 0, $take: Int = 6) {
+            bookmarks_aggregate {
+              aggregate {
+                count
+              }
+            }
+            bookmarks(where: {user_id:{_eq:$user_id}}, offset: $skip, limit: $take) {
+              event {
+                id
+                title
+                category {
+                  name
+                }
+                location {
+                  city
+                  venue
+                }
+                thumbnail
+                start_date
+                end_date
+              }
+            }
+          }
+      - name: CreateImage
+        query: |
+          mutation CreateImage ($event_id: Int!, $url: String!) {
+            insert_images_one(object: {event_id:$event_id,url:$url}) {
+              id
+              url
+            }
+          }
+      - name: CreateLocation
+        query: |
+          mutation CreateLocation ($city: String!, $venue: String!, $lat: float8!, $lng: float8!) {
+            insert_locations_one(object: {city:$city,venue:$venue,latitude:$lat,longtiude:$lng}) {
+              id
+              city
+              venue
+            }
+          }
+      - name: AddImages
+        query: |
+          mutation AddImages ($images: [images_insert_input!]!) {
+            insert_images(objects: $images) {
+              affected_rows
+            }
+          }
+      - name: CreateEvent
+        query: |
+          mutation CreateEvent ($title: String!, $description: String!, $user_id: Int!, $category_id: Int!, $location_id: Int!, $thumbnail: String!, $start_date: date!, $end_date: date!) {
+            insert_events_one(object: {title:$title,description:$description,user_id:$user_id,category_id:$category_id,location_id:$location_id,thumbnail:$thumbnail,start_date:$start_date,end_date:$end_date}) {
+              id
+              title
+              description
+              thumbnail
+              start_date
+              end_date
+              location {
+                city
+                venue
+              }
+              category {
+                name
+              }
+              tags {
+                name
+              }
+            }
+          }
+      - name: AddTicket
+        query: |
+          mutation AddTicket ($event_id: Int!, $ticket_type: String!, $description: String!, $price: float8!) {
+            insert_tickets_one(object: {event_id:$event_id,ticket_type:$ticket_type,description:$description,price:$price}) {
+              id
+            }
+          }
+      - name: CreateEventAction
+        query: |
+          mutation CreateEventAction ($title: String!, $description: String!, $user_id: Int!, $category_id: Int!, $city: String!, $venue: String!, $lat: float8!, $lng: float8!, $images: [String!]!, $tickets: [tickets_input!]!, $start_date: date!, $end_date: date!, $tags: [String!]!) {
+            CreateEvent(title: $title, description: $description, user_id: $user_id, category_id: $category_id, city: $city, venue: $venue, lat: $lat, lng: $lng, images: $images, tickets: $tickets, start_date: $start_date, end_date: $end_date, tags: $tags) {
+              id
+            }
+          }
+      - name: UpdateEvent
+        query: |
+          mutation UpdateEvent ($id: Int!, $title: String!, $description: String!, $category_id: Int!, $location_id: Int!, $city: String!, $venue: String!, $lat: float8!, $lng: float8!, $thumbnail: String!, $images: [AddImagesImagesInsertInput!]!, $start_date: date!, $end_date: date!, $tags: [tags_insert_input!]!, $tickets: [tickets_insert_input!]!) {
+            update_locations(where: {id:{_eq:$location_id}}, _set: {city:$city,venue:$venue,latitude:$lat,longtiude:$lng}) {
+              returning {
+                city
+                venue
+              }
+            }
+            update_events(where: {id:{_eq:$id}}, _set: {title:$title,description:$description,category_id:$category_id,thumbnail:$thumbnail,start_date:$start_date,end_date:$end_date}) {
+              returning {
+                title
+                description
+                thumbnail
+                start_date
+                end_date
+              }
+            }
+            delete_tags(where: {event_id:{_eq:$id}}) {
+              affected_rows
+            }
+            insert_tags(objects: $tags) {
+              returning {
+                id
+              }
+            }
+            delete_images(where: {event_id:{_eq:$id}}) {
+              affected_rows
+            }
+            AddImages(images: $images) {
+              affected_rows
+            }
+            delete_tickets(where: {event_id:{_eq:$id}}) {
+              returning {
+                id
+              }
+            }
+            insert_tickets(objects: $tickets) {
+              returning {
+                id
+              }
+            }
+          }
+      - name: ReserveEvent
+        query: |
+          mutation ReserveEvent ($user_id: Int!, $event_id: Int!, $ticket_id: Int!, $status: String!) {
+            insert_reservations_one(object: {user_id:$user_id,event_id:$event_id,ticket_id:$ticket_id,status:$status}) {
+              id
+            }
+          }
+      - name: ReserveEventAction
+        query: |
+          mutation ReserveEventAction ($user_id: Int!, $event_id: Int!, $ticket_id: Int!, $status: String!) {
+            ReserveEvent(user_id: $user_id, event_id: $event_id, ticket_id: $ticket_id, status: $status) {
+              id
+              checkoutUrl
+            }
+          }
+      - name: GetUserById
+        query: |
+          query GetUserById ($id: Int!) {
+            users(where: {id:{_eq:$id}}) {
+              first_name
+              last_name
+              email
+              phone_number
+            }
+          }
+      - name: GetEventById
+        query: |
+          query GetEventById ($id: Int!) {
+            events(where: {id:{_eq:$id}}) {
+              id
+              user_id
+              title
+              description
+              category {
+                id
+                name
+              }
+              thumbnail
+              images {
+                url
+              }
+              start_date
+              end_date
+              location {
+                id
+                city
+                venue
+                latitude
+                longtiude
+                full_location
+              }
+              tags {
+                name
+              }
+              bookmarks {
+                user_id
+              }
+              tickets {
+                id
+                ticket_type
+                description
+                price
+              }
+              reservations {
+                user_id
+                ticket_id
+                status
+              }
+            }
+          }
+      - name: CreatePayment
+        query: |
+          mutation CreatePayment ($user_id: Int!, $ticket_id: Int!, $amount: float8!, $status: String!, $reference: String!) {
+            insert_payments_one(object: {user_id:$user_id,ticket_id:$ticket_id,amount:$amount,status:$status,reference:$reference}) {
+              id
+            }
+          }
+      - name: GetReservedEvents
+        query: |
+          query GetReservedEvents ($user_id: Int!, $skip: Int = 0, $take: Int = 6) {
+            reservations_aggregate {
+              aggregate {
+                count
+              }
+            }
+            reservations(where: {user_id:{_eq:$user_id}}, offset: $skip, limit: $take) {
+              event {
+                id
+                title
+                category {
+                  name
+                }
+                location {
+                  city
+                  venue
+                }
+                thumbnail
+                start_date
+                end_date
+              }
+            }
+          }
+      - name: GetMyEvents
+        query: |
+          query GetMyEvents ($user_id: Int!, $skip: Int!, $take: Int!) {
+            events_aggregate {
+              aggregate {
+                count
+              }
+            }
+            events(where: {user_id:{_eq:$user_id}}, offset: $skip, limit: $take) {
+              id
+              title
+              user_id
+              category {
+                name
+              }
+              thumbnail
+              start_date
+              end_date
+              location {
+                city
+                venue
+              }
+            }
+          }
+      - name: GetPayment
+        query: |
+          query GetPayment ($id: Int!) {
+            payments(where: {id:{_eq:$id}}) {
+              ticket_id
+            }
+          }
+      - name: UpdatePaymentStatus
+        query: |
+          mutation UpdatePaymentStatus ($id: Int!) {
+            update_payments(where: {id:{_eq:$id}}, _set: {status:"completed"}) {
+              affected_rows
+            }
+          }
+      - name: UpdateReservation
+        query: |
+          mutation UpdateReservation ($event_id: Int!, $user_id: Int!) {
+            update_reservations(where: {event_id:{_eq:$event_id},user_id:{_eq:$user_id}}, _set: {status:"completed"}) {
+              affected_rows
+            }
+          }
+      - name: GetTicketById
+        query: |
+          query GetTicketById ($id: Int!) {
+            tickets(where: {id:{_eq:$id}}) {
+              price
+              event_id
+              ticket_type
+            }
+          }
+      - name: GetReservation
+        query: |
+          query GetReservation ($ticket_id: Int!, $user_id: Int!) {
+            reservations(where: {ticket_id:{_eq:$ticket_id},user_id:{_eq:$user_id}}) {
+              id
+            }
+          }
+      - name: GetEvent
+        query: |
+          query GetEvent ($id: Int!) {
+            events(where: {id:{_eq:$id}}) {
+              title
+              description
+              start_date
+              end_date
+              location {
+                city
+                venue
+                latitude
+                longtiude
+              }
+            }
+          }
+      - name: SearchEvent
+        query: |
+          query SearchEvent ($skip: Int = 0, $take: Int = 6, $text: String = "%%", $min_enterance_fee: float8 = 0, $max_enterance_fee: float8 = 0, $category: String = "%%") {
+            events_aggregate {
+              aggregate {
+                count
+              }
+            }
+            events(where: {_or:[{location:{city:{_ilike:$text},venue:{_ilike:$text}}},{title:{_ilike:$text}},{tags:{name:{_ilike:$text}}}],category:{name:{_ilike:$category}},tickets:{price:{_gte:$min_enterance_fee,_lte:$max_enterance_fee}}}, offset: $skip, limit: $take) {
+              id
+              title
+              category {
+                name
+              }
+              thumbnail
+              start_date
+              end_date
+              location {
+                city
+                venue
+              }
+            }
+          }
+      - name: GetCategories
+        query: |
+          query GetCategories {
+            categories {
+              id
+              name
+              image
+            }
+          }
